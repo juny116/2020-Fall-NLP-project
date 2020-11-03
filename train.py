@@ -30,8 +30,13 @@ def train(args):
     train_df['News'] = train_df['News'].apply(preprocess_sent)
     test_df['News'] = test_df['News'].apply(preprocess_sent)
 
-    tokenizer = Mecab()
-    TEXT = data.Field(use_vocab=True, tokenize=tokenizer.morphs, include_lengths=True)
+    if args.tokenizer == 'mecab':
+        tokenizer = Mecab()
+        tokenize = tokenizer.morphs
+    else:
+        tokenize = None
+
+    TEXT = data.Field(use_vocab=True, tokenize=tokenize, include_lengths=True)
     LABEL = data.Field(sequential=False, use_vocab=True, is_target=True, unk_token=None)
 
     fields = { 'Topic' : LABEL, 'News' : TEXT }
@@ -50,14 +55,6 @@ def train(args):
         train=False, repeat=False)
 
     # word embedding model
-    # use Word2Vec 300D token for now
-    word_embeddings = KeyedVectors.load_word2vec_format(args.word_embedding, binary=False, encoding='utf-8')
-    # if word not in pre-trained embedding, random initialize
-    # embeddings = nn.Embedding(num_embeddings=len(TEXT.vocab), embedding_dim=word_embeddings.vector_size)
-    # nn.init.uniform_(embeddings.weight.data)
-    # for i, w in enumerate(TEXT.vocab.itos):
-    #     if w in word_embeddings:
-    #         embeddings.weight.data[i] = torch.FloatTensor(word_embeddings[w])
     embeddings = nn.Embedding.from_pretrained(TEXT.vocab.vectors, freeze=False)
 
     # model & loss
@@ -148,6 +145,7 @@ def main():
                         help='The path of word embedding file.')
     parser.add_argument('--train-embedding', default=False, action='store_true', 
                         help='True if finetuning the word embedding')
+    parser.add_argument('--tokenizer', default=None)
     parser.add_argument('--save-dir', default='trained_models/baseline')
     parser.add_argument('--batch-size', default=128, type=int)
     parser.add_argument('--max-epoch', default=50, type=int)
