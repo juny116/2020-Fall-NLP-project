@@ -12,6 +12,7 @@ from torch import nn, optim
 from torch.nn import init
 from torch.nn.utils import clip_grad_norm_
 from torchtext import data
+from torchtext.vocab import Vectors
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
 from utils.preprocessing import preprocess_sent
@@ -37,7 +38,8 @@ def train(args):
     train_dataset = DataFrameDataset(train_df, fields)
     test_dataset = DataFrameDataset(test_df, fields)
 
-    TEXT.build_vocab(train_dataset, min_freq=10) 
+    vectors = Vectors(name=args.word_embedding)
+    TEXT.build_vocab(train_dataset, min_freq=10, vectors=vectors) 
     LABEL.build_vocab(train_dataset)
 
     train_loader = data.BucketIterator(
@@ -51,11 +53,12 @@ def train(args):
     # use Word2Vec 300D token for now
     word_embeddings = KeyedVectors.load_word2vec_format(args.word_embedding, binary=False, encoding='utf-8')
     # if word not in pre-trained embedding, random initialize
-    embeddings = nn.Embedding(num_embeddings=len(TEXT.vocab), embedding_dim=word_embeddings.vector_size)
-    nn.init.uniform_(embeddings.weight.data)
-    for i, w in enumerate(TEXT.vocab.itos):
-        if w in word_embeddings:
-            embeddings.weight.data[i] = torch.FloatTensor(word_embeddings[w])
+    # embeddings = nn.Embedding(num_embeddings=len(TEXT.vocab), embedding_dim=word_embeddings.vector_size)
+    # nn.init.uniform_(embeddings.weight.data)
+    # for i, w in enumerate(TEXT.vocab.itos):
+    #     if w in word_embeddings:
+    #         embeddings.weight.data[i] = torch.FloatTensor(word_embeddings[w])
+    embeddings = nn.Embedding.from_pretrained(TEXT.vocab.vectors, freeze=False)
 
     # model & loss
     model = BiRNNTextClassifier(

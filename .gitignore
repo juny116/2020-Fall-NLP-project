@@ -1,7 +1,7 @@
 .vscode
 word_embeddings/*
 __pycache__
-
+.vector_cache/
 trained_models/*
 data/*
 !__init__.py
