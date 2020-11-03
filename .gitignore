@@ -1,0 +1,9 @@
+.vscode
+word_embeddings/*
+__pycache__
+
+trained_models/*
+data/*
+!__init__.py
+!dataframe_dataset.py
+!series_examples.py

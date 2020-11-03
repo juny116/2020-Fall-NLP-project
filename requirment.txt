@@ -1,0 +1,7 @@
+gensim
+pyyaml
+hanja
+soynlp
+konlpy
+tqdm
+torchtext
