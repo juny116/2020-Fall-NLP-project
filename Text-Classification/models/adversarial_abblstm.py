@@ -3,6 +3,11 @@ from tensorflow.python.ops.rnn import bidirectional_dynamic_rnn as bi_rnn
 import time
 from utils.prepare_data import *
 from utils.model_helper import *
+from data.dataframe_dataset import *
+from torchtext import data
+from utils.preprocessing import preprocess_sent
+from torchtext.vocab import Vectors
+from torch import nn, optim
 
 
 def scale_l2(x, norm_length):
@@ -62,14 +67,16 @@ class AdversarialClassifier(object):
             freq[word_idx] = word_freq
         return freq
 
-    def build_graph(self, vocab_freq, word2idx):
+    def build_graph(self, vocab_freq, word2idx, embeddddd):
         vocab_freqs = tf.constant(self._get_freq(vocab_freq, word2idx),
                                   dtype=tf.float32, shape=(self.vocab_size, 1))
         weights = vocab_freqs / tf.reduce_sum(vocab_freqs)
-        embeddings_var = tf.Variable(tf.random_uniform([self.vocab_size, self.embedding_size], -1.0, 1.0),
-                                     trainable=True, name="embedding_var")
-        embedding_norm = normalize(embeddings_var, weights)
-        batch_embedded = tf.nn.embedding_lookup(embedding_norm, self.x)
+        # embeddings_var = tf.Variable(tf.random_uniform([self.vocab_size, self.embedding_size], -1.0, 1.0),
+        #                              trainable=True, name="embedding_var")
+        embeddings_var = tf.constant(embeddddd, name="embedding_var")
+        # embedding_norm = normalize(embeddings_var, weights)
+        # batch_embedded = tf.nn.embedding_lookup(embedding_norm, self.x)
+        batch_embedded = tf.nn.embedding_lookup(embeddings_var, self.x)
 
         W = tf.Variable(tf.random_normal([self.hidden_size], stddev=0.1))
         W_fc = tf.Variable(tf.truncated_normal([self.hidden_size, self.n_class], stddev=0.1))
@@ -118,50 +125,15 @@ class AdversarialClassifier(object):
 
         print("graph built successfully!")
 
-# from torchtext import data
-# from data import DataFrameDataset, SeriesExample
-
 if __name__ == '__main__':
-    # train_df = pd.read_csv("~/2020_nlp/data/BalancedNewsCorpus_train.csv", encoding='utf-8')
-    # test_df = pd.read_csv("~/2020_nlp/data/BalancedNewsCorpus_test.csv", encoding='utf-8')
-
-    # train_df['News'] = train_df['News'].apply(preprocess_sent)
-    # test_df['News'] = test_df['News'].apply(preprocess_sent)
-
-    # # if args.tokenizer == 'mecab':
-    # #     tokenizer = Mecab()
-    # #     tokenize = tokenizer.morphs
-    # # else:
-    # tokenize = None
-
-    # TEXT = data.Field(use_vocab=True, tokenize=tokenize, include_lengths=True)
-    # LABEL = data.Field(sequential=False, use_vocab=True, is_target=True, unk_token=None)
-
-    # fields = { 'Topic' : LABEL, 'News' : TEXT }
-    # train_dataset = DataFrameDataset(train_df, fields)
-    # test_dataset = DataFrameDataset(test_df, fields)
-
-    # vectors = Vectors(name=args.word_embedding)
-    # TEXT.build_vocab(train_dataset, min_freq=10, vectors=vectors) 
-    # LABEL.build_vocab(train_dataset)
-
-    # train_loader = data.BucketIterator(
-    #     dataset=train_dataset, batch_size=args.batch_size, device=args.gpu, sort_within_batch=True,
-    #     train=True, repeat=False)
-    # test_loader = data.BucketIterator(
-    #     dataset=test_dataset, batch_size=args.batch_size, device=args.gpu,
-    #     train=False, repeat=False)
-
-    # # word embedding model
-    # embeddings = nn.Embedding.from_pretrained(TEXT.vocab.vectors, freeze=False)
-
     # load data
     # dbpedia = tf.contrib.learn.datasets.load_dataset('dbpedia', test_with_fake_data=False)
     # x_train, y_train = load_data("./dbpedia_data/dbpedia_csv/train.csv", sample_ratio=1e-2, one_hot=False)
     # x_test, y_test = load_data("./dbpedia_data/dbpedia_csv/test.csv", one_hot=False)
-    x_train, y_train = load_data("~/2020_nlp/data/BalancedNewsCorpus_train.csv", one_hot=False, create_dict=True)
-    x_test, y_test = load_data("~/2020_nlp/data/BalancedNewsCorpus_test.csv", one_hot=False)
-    print(x_train.shape)
+    x_train, y_train, x_train_ = load_data("~/2020_nlp/data/BalancedNewsCorpus_train.csv", one_hot=False, create_dict=True)
+    x_test, y_test, x_test_ = load_data("~/2020_nlp/data/BalancedNewsCorpus_test.csv", one_hot=False)
+
+
     # data preprocessing
     x_train, x_test, vocab_freq, word2idx, vocab_size = \
         data_preprocessing_with_dict(x_train, x_test, max_len=128)
@@ -173,22 +145,59 @@ if __name__ == '__main__':
         split_dataset(x_test, y_test, 0.1)
     print("Validation Size: ", dev_size)
 
+    train_df = pd.read_csv("~/2020_nlp/data/BalancedNewsCorpus_train.csv", encoding='utf-8')
+    test_df = pd.read_csv("~/2020_nlp/data/BalancedNewsCorpus_test.csv", encoding='utf-8')
+
+    train_df['News'] = train_df['News'].apply(preprocess_sent)
+    test_df['News'] = test_df['News'].apply(preprocess_sent)
+    # if args.tokenizer == 'mecab':
+    #     tokenizer = Mecab()
+    #     tokenize = tokenizer.morphs
+    # else:
+    tokenize = None
+
+    TEXT = data.Field(use_vocab=True, tokenize=tokenize, include_lengths=True)
+    LABEL = data.Field(sequential=False, use_vocab=True, is_target=True, unk_token=None)
+    fields = { 'Topic' : LABEL, 'News' : TEXT }
+    # train_dataset = DataFrameDataset(train_df, fields)
+    # test_dataset = DataFrameDataset(test_df, fields)
+    train_dataset = DataFrameDataset(x_train_, fields)
+    test_dataset = DataFrameDataset(x_test_, fields)
+    print(train_dataset.exanmples)
+    vectors = Vectors("../word_embeddings/Word2Vec_300D_token.model")
+    TEXT.build_vocab(train_dataset, min_freq=10, vectors=vectors) 
+    LABEL.build_vocab(train_dataset)
+    print("vocab size :", TEXT.vocab.vectors)
+    print("vocab size :", TEXT.vocab.vectors.shape)
+    # train_loader = data.BucketIterator(
+    #     dataset=train_dataset, batch_size=args.batch_size, device=args.gpu, sort_within_batch=True,
+    #     train=True, repeat=False)
+    # test_loader = data.BucketIterator(
+    #     dataset=test_dataset, batch_size=args.batch_size, device=args.gpu,
+    #     train=False, repeat=False)
+
+    # word embedding model
+    # embeddings = nn.Embedding.from_pretrained(TEXT.vocab.vectors, freeze=False)
+    # print("embedd")
+    # print(embeddings)
+
     config = {
         "max_len": 128,
         "hidden_size": 64,
+        # "hidden_size": 128,
         "vocab_size": vocab_size,
         # "embedding_size": 128,
         "embedding_size": 300,
         # "n_class": 15,
         "n_class": 11,
-        "learning_rate": 1e-2,
+        "learning_rate": 1e-4,
         "batch_size": 32,
         "train_epoch": 10,
         "epsilon": 5,
     }
 
     classifier = AdversarialClassifier(config)
-    classifier.build_graph(vocab_freq, word2idx)
+    classifier.build_graph(vocab_freq, word2idx, TEXT.vocab.vectors)
 
     # auto GPU growth, avoid occupy all GPU memory
     tf_config = tf.ConfigProto()

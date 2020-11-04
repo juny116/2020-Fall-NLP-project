@@ -14,34 +14,34 @@ def to_one_hot(y, n_class):
 
 def load_data(file_name, sample_ratio=1, n_class=11, names=names, one_hot=True, create_dict=False):
     '''load data from .csv file'''
-    csv_file = pd.read_csv(file_name, names=names, encoding='utf-8')
-    print("Csv file : ", csv_file.shape)
+    shuffle_csv = pd.read_csv(file_name, encoding='utf-8')
+    print("Csv file : ", shuffle_csv.shape)
     from utils.preprocessing import preprocess_sent
-    csv_file['News'] = csv_file['News'].apply(preprocess_sent)
-
-    shuffle_csv = csv_file.sample(frac=sample_ratio)
+    shuffle_csv['News'] = shuffle_csv['News'].apply(preprocess_sent)
+    # shuffle_csv = csv_file.sample(frac=sample_ratio)
     if create_dict:
         global map
         map = {key:val for val, key in enumerate(set(shuffle_csv["Topic"]))}
         print(map)
 
-    for index, value in shuffle_csv["Topic"].items():
-        # print(f"Index : {index}, Value : {value}")
-        if value not in map:
-           shuffle_csv["Topic"][index] = -1
-        else: 
-            shuffle_csv["Topic"][index] = map[value]
+    shuffle_csv['Topic'].replace(map,inplace=True)
+    # for index, value in shuffle_csv["Topic"].items():
+    #     # print(f"Index : {index}, Value : {value}")
+    #     if value not in map:
+    #        shuffle_csv["Topic"][index] = -1
+    #     else: 
+    #         shuffle_csv["Topic"][index] = map[value]
     x = pd.Series(shuffle_csv["News"])
     y = pd.Series(shuffle_csv["Topic"])
     print("shuffle:", shuffle_csv["News"].shape)
-    print("shuffle:", shuffle_csv["Topic"].shape)
+    print("shuffle:", shuffle_csv["Topic"])
 
     # x = pd.Series(shuffle_csv["content"])
     # y = pd.Series(shuffle_csv["class"])
 
     if one_hot:
         y = to_one_hot(y, n_class)
-    return x, y
+    return x, y, shuffle_csv
 
 
 def data_preprocessing(train, test, max_len):
