@@ -69,7 +69,7 @@ def preprocess_sent(sentence: str = None) -> str:
     :param sentence: 전처리 대상 문장
     :return: 전처리 완료된 문장
     """
-    sentence = sentence.replace('<p>',' ').replace('</p>',' ')
+    sentence = sentence.replace('<p>',' ').replace('</p>','<sep>')
     sent_clean = sentence
     sent_clean = cleansing_other(sent_clean)
     sent_clean = cleansing_chinese(sent_clean)

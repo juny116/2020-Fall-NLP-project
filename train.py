@@ -55,7 +55,7 @@ def train(args):
         train=False, repeat=False)
 
     # word embedding model
-    embeddings = nn.Embedding.from_pretrained(TEXT.vocab.vectors, freeze=False)
+    embeddings = nn.Embedding.from_pretrained(TEXT.vocab.vectors, freeze=True)
 
     # model & loss
     model = BiRNNTextClassifier(
@@ -64,10 +64,8 @@ def train(args):
         dropout_prob=args.dropout)
     print(model)
 
-    if args.train_embedding:
-        optimizer = optim.Adam(list(embeddings.parameters()) + list(model.parameters()))
-    else:
-        optimizer = optim.Adam(list(model.parameters()))
+    optimizer = optim.Adam(list(embeddings.parameters()) + list(model.parameters()))
+    
     loss_weight = None
     criterion = nn.CrossEntropyLoss(weight=loss_weight)
     # scheduler = StepLR(optimizer, step_size=3, gamma=args.gamma)
@@ -106,6 +104,8 @@ def train(args):
     iter_count = 0
     best_valid_accuracy = -1
     for cur_epoch in range(args.max_epoch):
+        if cur_epoch == args.finetune_embedding:
+            embeddings.weight.requires_grad = True
         for train_batch in tqdm(train_loader, desc=f'Epoch {cur_epoch:2d}'):
             if not model.training:
                 embeddings.train()
@@ -143,8 +143,8 @@ def main():
     parser.add_argument('--gamma', default=0.9, type=float)
     parser.add_argument('--word-embedding', default='word_embeddings/Word2Vec_300D_token.model',
                         help='The path of word embedding file.')
-    parser.add_argument('--train-embedding', default=False, action='store_true', 
-                        help='True if finetuning the word embedding')
+    parser.add_argument('--finetune-embedding', default=-1, type=int,  
+                        help='start epoch of finetuning word embedding (default: do not finetune)')
     parser.add_argument('--tokenizer', default=None)
     parser.add_argument('--save-dir', default='trained_models/baseline')
     parser.add_argument('--batch-size', default=128, type=int)
@@ -167,7 +167,7 @@ def main():
                   'dropout_prob': args.dropout,
                   'rnn_type': args.rnn_type},
         'train': {'batch_size': args.batch_size,
-                  'train_embedding': args.train_embedding}
+                  'finetune_embedding': args.finetune_embedding}
     }
     with open(os.path.join(args.save_dir, 'config.yml'), 'w') as f:
         yaml.dump(config, f, default_flow_style=False)

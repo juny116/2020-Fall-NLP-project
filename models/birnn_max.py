@@ -15,11 +15,11 @@ class BiRNNMax(nn.Module):
         if rnn_type == 'gru':
             self.rnn = nn.GRU(
                 input_size=input_dim, hidden_size=hidden_dim,
-                bidirectional=True, dropout=dropout_prob)
+                bidirectional=True, dropout=dropout_prob, num_layers=2)
         elif rnn_type == 'lstm':
             self.rnn = nn.LSTM(
                 input_size=input_dim, hidden_size=hidden_dim,
-                bidirectional=True, dropout=dropout_prob)
+                bidirectional=True, dropout=dropout_prob, num_layers=2)
         else:
             raise ValueError('Unknown RNN type!')
         self.reset_parameters()
@@ -33,11 +33,22 @@ class BiRNNMax(nn.Module):
         init.kaiming_normal_(self.rnn.weight_ih_l0_reverse.data)
         init.constant_(self.rnn.bias_hh_l0_reverse.data, val=0)
         init.constant_(self.rnn.bias_ih_l0_reverse.data, val=0)
+
+        init.orthogonal_(self.rnn.weight_hh_l1.data)
+        init.kaiming_normal_(self.rnn.weight_ih_l1.data)
+        init.constant_(self.rnn.bias_hh_l1.data, val=0)
+        init.constant_(self.rnn.bias_ih_l1.data, val=0)
+        init.orthogonal_(self.rnn.weight_hh_l1_reverse.data)
+        init.kaiming_normal_(self.rnn.weight_ih_l1_reverse.data)
+        init.constant_(self.rnn.bias_hh_l1_reverse.data, val=0)
+        init.constant_(self.rnn.bias_ih_l1_reverse.data, val=0)
         if self.rnn_type == 'lstm':
             # Set the initial forget bias values to 1
             self.rnn.bias_ih_l0.data.chunk(4)[1].fill_(1)
             self.rnn.bias_ih_l0_reverse.data.chunk(4)[1].fill_(1)
 
+            self.rnn.bias_ih_l1.data.chunk(4)[1].fill_(1)
+            self.rnn.bias_ih_l1_reverse.data.chunk(4)[1].fill_(1)
     def forward(self, inputs, length):
         """
         Args:
