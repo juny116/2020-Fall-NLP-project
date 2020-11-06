@@ -16,7 +16,7 @@
 * 모델도 아직은 BiLSTM-max뿐!
 * attention이 추가됨 dot, bahdanau
 * 현재 사용중인 preprocess는 공유받은 Word2Vec 노트북 파일에 코드를 그대로 가져옴
-  * 해당 코드랑 약간의 사용법이 달라서 <p>를 sep로 변경하는 부분만 추가
+  * 해당 코드랑 약간의 사용법이 달라서 \<p>를 sep로 변경하는 부분만 추가
   * 이유는 알 수 없지만 현재 코드를 사용해서 나오는 token 중에서 약 30개? 정도는 pretrained embedding에 없음, 어떻게 열심히 세팅을 맞춰봐도 현재는 이게 최선 (mecab 기준)
   * Glove는 preprocessing이 약간 또 다르다... 이넘들
 * valid 따위 아직 split해서 만들지 않았고, 약간 cheating이지만 현재는 그냥 test를 사용해서 평가함
