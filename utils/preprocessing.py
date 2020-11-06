@@ -1,6 +1,8 @@
 import re
 import hanja
+from konlpy.tag import Mecab
 
+tokenizer = Mecab()
 removal_list =  "‘, ’, ◇, ‘, ”,  ’, ', ·, \“, ·, △, ●,  , ■, (, ), \", >>, `, /, -,∼,=,ㆍ<,>, .,?, !,【,】, …, ◆,%"
 
 EMAIL_PATTERN = re.compile(r'''(([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+)(\.[a-zA-Z]{2,4}))''', re.VERBOSE)
@@ -115,3 +117,8 @@ def cleaning_strings(input_text):
     output_text = input_text.strip()
 
     return output_text
+
+def glove_tokenizer(text):
+    temp_tks = tokenizer.pos(text)
+    result = [f'{x[0].strip()}/{x[1].strip()}' for x in temp_tks if x[0]!=''] 
+    return result
