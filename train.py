@@ -27,9 +27,9 @@ def train(args):
     train_df = pd.read_csv(os.path.join(args.train_data), encoding='utf-8')
     test_df = pd.read_csv(os.path.join(args.test_data), encoding='utf-8')
 
-    train_df['News'] = train_df['News'].apply(cleaning_strings)
-    test_df['News'] = test_df['News'].apply(cleaning_strings)
-    print(test_df)
+    train_df['News'] = train_df['News'].apply(preprocess_sent)
+    test_df['News'] = test_df['News'].apply(preprocess_sent)
+
     if args.tokenizer == 'mecab':
         tokenizer = Mecab()
         tokenize = tokenizer.morphs
