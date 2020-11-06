@@ -14,10 +14,11 @@
 * ~아직 Word2Vec 300D token 밖에 구현이 안되어있음 (토크나이징까지 바꿔야해서... 생각보다 귀찮네..아오)~
 * morph와 whitespace 버전 Word2Vec, FastText 사용가능 (주의할 부분은 사용하는 morph버전을 사용할 때는 tokenizer을 mecab으로 줘야함) 
 * 모델도 아직은 BiLSTM-max뿐!
+* attention이 추가됨 dot, bahdanau
 * 현재 사용중인 preprocess는 공유받은 Word2Vec 노트북 파일에 코드를 그대로 가져옴
-  * 해당 코드랑 약간의 사용법이 달라서 \<p>를 없애주는 부분만 추가
-  * 이유는 알 수 없지만 현재 코드를 사용해서 나오는 token 중에서 약 30개? 정도는 pretrained embedding에 없음, 어떻게 열심히 세팅을 맞춰봐도 현재는 이게 최선
-  * 해당 preprocess를 사용하면 문장구분이 싹다 사라진다는 엄청난 일이 발생함... 추후 수정예정
+  * 해당 코드랑 약간의 사용법이 달라서 <p>를 sep로 변경하는 부분만 추가
+  * 이유는 알 수 없지만 현재 코드를 사용해서 나오는 token 중에서 약 30개? 정도는 pretrained embedding에 없음, 어떻게 열심히 세팅을 맞춰봐도 현재는 이게 최선 (mecab 기준)
   * Glove는 preprocessing이 약간 또 다르다... 이넘들
 * valid 따위 아직 split해서 만들지 않았고, 약간 cheating이지만 현재는 그냥 test를 사용해서 평가함
-* 아직 베이스라인에 가까운 모델이라 max 성능 약 80.5정도 나옴
+* ~아직 베이스라인에 가까운 모델이라 max 성능 약 80.5정도 나옴~
+* 현재 최고의 성능을 보인건 bahdaunau lstm 2 layer버전 85.31
