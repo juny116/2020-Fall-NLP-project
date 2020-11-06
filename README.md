@@ -14,7 +14,7 @@
 * ~아직 Word2Vec 300D token 밖에 구현이 안되어있음 (토크나이징까지 바꿔야해서... 생각보다 귀찮네..아오)~
 * morph와 whitespace 버전 Word2Vec, FastText 사용가능 (주의할 부분은 사용하는 morph버전을 사용할 때는 tokenizer을 mecab으로 줘야함) 
 * 모델도 아직은 BiLSTM-max뿐!
-* attention이 추가됨 dot, bahdanau
+* attention이 모델에 추가됨 dot, bahdanau (bahdanau 버전이 현재 버전, dot을 쓰려면 코드를 수정해야함)
 * 현재 사용중인 preprocess는 공유받은 Word2Vec 노트북 파일에 코드를 그대로 가져옴
   * 해당 코드랑 약간의 사용법이 달라서 \<p>를 sep로 변경하는 부분만 추가
   * 이유는 알 수 없지만 현재 코드를 사용해서 나오는 token 중에서 약 30개? 정도는 pretrained embedding에 없음, 어떻게 열심히 세팅을 맞춰봐도 현재는 이게 최선 (mecab 기준)
