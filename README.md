@@ -22,3 +22,13 @@
 * valid 따위 아직 split해서 만들지 않았고, 약간 cheating이지만 현재는 그냥 test를 사용해서 평가함
 * ~아직 베이스라인에 가까운 모델이라 max 성능 약 80.5정도 나옴~
 * 현재 최고의 성능을 보인건 bahdaunau lstm 2 layer버전 85.31
+
+
+
+#### 추가 (형준)
+* CNN 을 적용해봤습니다. (구글링했습니다ㅎㅎ)
+* train.py 를 돌릴 때 --flag=True 를 주면 추가한 모델로 테스트할 수 있습니다 : <code>python train.py --flag=True</code>
+* filter 크기와 kernel 크기도 지정할 수 있게 했습니다. 
+  * --n_filters 옵션으로 filter 크기 지정할 수 있습니다. (default 250)
+  * --filter_count 로 filter 개수(default 3)를 정할 수 있고 kernel 크기 별도로 입력하게 해놨습니다. (여러개 테스트해보려고)
+* 78 % 정도 성능이 나옵니다. (제가 잘 짰다는 가정하에..)

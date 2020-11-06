@@ -21,6 +21,8 @@ from konlpy.tag import Mecab
 from gensim.models.keyedvectors import KeyedVectors
 from data import DataFrameDataset, SeriesExample
 
+from models.cnn_based import CNNClassifier
+
 
 def train(args):
     # Data preprocessing & construct torchtext dataloader
@@ -58,10 +60,25 @@ def train(args):
     embeddings = nn.Embedding.from_pretrained(TEXT.vocab.vectors, freeze=True)
 
     # model & loss
-    model = BiRNNTextClassifier(
-        rnn_type=args.rnn_type, num_classes=len(LABEL.vocab), word_dim=args.word_dim,
-        hidden_dim=args.hidden_dim, clf_dim=args.clf_dim,
-        dropout_prob=args.dropout)
+    # ADDED
+    if args.flag:
+        filter_sizes = []
+        for i in range(args.filter_count):
+            filter_sizes.append(int(input('Enter filter size : ')))
+        print('filter_sizes =', filter_sizes)
+        model = CNNClassifier(
+            num_classes = len(LABEL.vocab), 
+            word_dim = args.word_dim, 
+            hidden_dim = args.hidden_dim, 
+            clf_dim = args.clf_dim, 
+            n_filters = args.n_filters, 
+            filter_sizes = filter_sizes, 
+            dropout_prob=0)
+    else:
+        model = BiRNNTextClassifier(
+            rnn_type=args.rnn_type, num_classes=len(LABEL.vocab), word_dim=args.word_dim,
+            hidden_dim=args.hidden_dim, clf_dim=args.clf_dim,
+            dropout_prob=args.dropout)
     print(model)
 
     optimizer = optim.Adam(list(embeddings.parameters()) + list(model.parameters()))
@@ -154,6 +171,24 @@ def main():
                         action='store_false',
                         help="If set, it doesn't check whether the save "
                              "directory already exists or not.")
+
+    # ADDED
+    ###################
+    ##   CNN MODEL   ##
+    ###################
+    parser.add_argument('--flag', default=True, type=bool, help='If True, use my model(CNN)')
+    parser.add_argument('--n_filters', default='250', type=int)
+    parser.add_argument('--filter_count', default='3', type=int)
+
+    ##### RESULTS #####
+    # 50 epoch , filter size 250, kernel size [6, 6, 6] > 78.5%
+    # 50 epoch , filter size 250, kernel size [10, 10, 10] > 76.5%
+    # 50 epoch , filter size 250, kernel size [6, 7, 8] > 77.3%
+    # 50 epoch , filter size 250, kernel size [6, 6, 6, 6, 6] > 77.3%
+    # 50 epoch , filter size 150, kernel size [4, 5, 6] > 77.8%
+    # 50 epoch , filter size 400, kernel size [4, 5, 6] > 77.8%
+    ###################
+            
     args = parser.parse_args()
 
     os.makedirs(args.save_dir, exist_ok=args.allow_overwrite)
@@ -177,3 +212,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
