@@ -15,7 +15,7 @@ from torchtext import data
 from torchtext.vocab import Vectors
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
-from utils.preprocessing import preprocess_sent
+from utils.preprocessing import preprocess_sent, cleaning_strings, glove_tokenizer
 from models import BiRNNTextClassifier
 from konlpy.tag import Mecab
 from gensim.models.keyedvectors import KeyedVectors
@@ -33,6 +33,8 @@ def train(args):
     if args.tokenizer == 'mecab':
         tokenizer = Mecab()
         tokenize = tokenizer.morphs
+    if args.tokenizer == 'glove':
+        tokenize = glove_tokenizer
     else:
         tokenize = None
 
@@ -147,7 +149,7 @@ def main():
                         help='start epoch of finetuning word embedding (default: do not finetune)')
     parser.add_argument('--tokenizer', default=None)
     parser.add_argument('--save-dir', default='trained_models/baseline')
-    parser.add_argument('--batch-size', default=32, type=int)
+    parser.add_argument('--batch-size', default=128, type=int)
     parser.add_argument('--max-epoch', default=100, type=int)
     parser.add_argument('--gpu', default='cuda:0')
     parser.add_argument('--allow-overwrite', default=True,
