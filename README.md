@@ -5,6 +5,7 @@
 2. word_embeddings 폴더에 다운받은 embedding 파일들을 넣는다
 3. requirments 들을 설치한다 (아래의 참고사항 확인)
 4. train.py를 돌린다
+* Best perform 모델은 해당 옵션을 사용함 --tokienizer mecab --dropout 0.7 --fintune-embedding 50 --rnn-type gru
 
 
 #### 참고사항
